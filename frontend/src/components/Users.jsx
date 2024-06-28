@@ -11,7 +11,7 @@ export const Users = () => {
 
     useEffect(() => {
         const token=localStorage.getItem("token");
-        axios.get("http://localhost:3000/api/user/bulk",{
+        axios.get("https://paytm-full-stack.vercel.app/user/bulk",{
             params:{filter:filter},
             headers:{ Authorization:`Bearer ${token}`}
         })

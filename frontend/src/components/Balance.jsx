@@ -8,7 +8,7 @@ function Balance() {
         const token=localStorage.getItem('token');
         console.log(token);
         const fetchBalance=async()=>{
-          const response=await axios.get('http://localhost:3000/api/account/balance',{
+          const response=await axios.get('https://paytm-full-stack.vercel.app/account/balance',{
               headers:{ Authorization:`Bearer ${token}`},
           });
           console.log("the response is",response.data);

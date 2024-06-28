@@ -15,7 +15,7 @@ function SendMoney() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/api/account/transfer",
+        "https://paytm-full-stack.vercel.app/account/transfer",
         {
           amount,
           to: id
