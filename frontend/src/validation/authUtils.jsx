@@ -12,7 +12,7 @@ export  const validateToken=async()=>{
     if(!token)
         return false;
     try {
-        const response=await axios.get("http://localhost:3000/api/user/validate-token",{
+        const response=await axios.get("https://paytm-full-stack.vercel.app/api/user/validate-token",{
             headers:{
                 Authorization:`Bearer ${token}`
             }

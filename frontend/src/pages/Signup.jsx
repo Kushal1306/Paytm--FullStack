@@ -17,7 +17,7 @@ function Signup() {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
       console.log(decoded);
-      const response = await axios.post('https://paytm-full-stack.vercel.app/user/google-signin', {
+      const response = await axios.post('https://paytm-full-stack.vercel.app/api/user/google-signin', {
         token: credentialResponse.credential,
       });
       localStorage.setItem('token', response.data.token);
@@ -57,7 +57,7 @@ function Signup() {
         }} label={"Pasword"}/>
         <div className='pt-2'>
           <Button onClick={ async()=>{
-            const response= await axios.post("https://paytm-full-stack.vercel.app/user/signup",{
+            const response= await axios.post("https://paytm-full-stack.vercel.app/api/user/signup",{
               userName,
               password,
               firstName,

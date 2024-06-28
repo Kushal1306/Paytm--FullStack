@@ -16,7 +16,7 @@ import ProtectedRoute from './validation/authenticationProtected';
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId="90252798107-v0i4arudclms2qv3ubrsi708evgam3j7.apps.googleusercontent.com">
       <BrowserRouter>
         <Routes>
           <Route path='/signup' element={isLoggedIn() ? <Navigate to="/dashboard" /> : <Signup />} />

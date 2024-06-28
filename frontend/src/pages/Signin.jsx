@@ -17,7 +17,7 @@ function Signin() {
   const handleButton = async () => {
     try {
       console.log(userName, password);
-      const response = await axios.post("https://paytm-full-stack.vercel.app/user/signin", {
+      const response = await axios.post("https://paytm-full-stack.vercel.app/api/user/signin", {
         userName,
         password
       });
@@ -33,7 +33,7 @@ function Signin() {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
       console.log(decoded);
-      const response = await axios.post('https://paytm-full-stack.vercel.app/user/google-signin', {
+      const response = await axios.post('https://paytm-full-stack.vercel.app/api/user/google-signin', {
         token: credentialResponse.credential,
       });
       localStorage.setItem('token', response.data.token);
