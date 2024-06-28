@@ -27,6 +27,9 @@ const UserSchema= new mongoose.Schema({
         required:true,
         trim:true,
         maxLength:50
+    },
+    googleId:{
+        type:String
     }
 });
 

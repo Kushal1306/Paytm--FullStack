@@ -1,35 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import './index.css';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Signup from './pages/Signup';
+import Signin from './pages/Signin';
+import Dashboard from './pages/Dashboard';
+import SendMoney from './pages/SendMoney';
+import { isLoggedIn } from './validation/authUtils';
+import ProtectedRoute from './validation/authenticationProtected';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+      <BrowserRouter>
+        <Routes>
+          <Route path='/signup' element={isLoggedIn() ? <Navigate to="/dashboard" /> : <Signup />} />
+          <Route path='/signin' element={isLoggedIn() ? <Navigate to="/dashboard" /> : <Signin />} />
+          <Route path='/dashboard' element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path='/send' element={
+            <ProtectedRoute>
+              <SendMoney />
+            </ProtectedRoute>
+          } />
+          <Route path='/' element={isLoggedIn() ? <Navigate to="/dashboard" /> : <Navigate to="/signin" />} />
+        </Routes>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
+  );
 }
 
-export default App
+export default App;

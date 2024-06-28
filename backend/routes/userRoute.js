@@ -6,8 +6,11 @@ import zod from 'zod'
 import authMiddleWare from '../middleware.js';
 import bcrypt from 'bcrypt';
 import Account from '../models/Account.js';
+import { OAuth2Client } from 'google-auth-library';
 
-const router = express.Router();
+const client=new OAuth2Client();
+
+const userRouter = express.Router();
 
 const signupSchema = zod.object({
     userName: zod.string().email(),
@@ -16,18 +19,18 @@ const signupSchema = zod.object({
     lastName: zod.string()
 });
 
-router.get("/",async(req,res)=>{
+userRouter.get("/",async(req,res)=>{
    return res.send("Hello World");
 });
 
-router.post("/signup", async (req, res) => {
-    const body = req.body;
-    const response = signupSchema.safeParse(body)
-    if (!response.success) {
-        return res.json({ message: "Email already taken/Incorrect inputs" });
+userRouter.post("/signup", async (req, res) => {
+    const {success} = signupSchema.safeParse(req.body);
+    if (!success) {
+        return res.json({ message: "Incorrect inputs" });
     }
-    const user = User.findOne({ userName: body.userName });
-    if (user._id) {
+    const existingUser = User.findOne({ userName: req.body.userName });
+    console.log("the existing user is:",existingUser);
+    if (existingUser._id) {
         return res.json({ message: "email already taken/incorrect inputs" });
     }
     const { userName, password, firstName, lastName } = req.body;
@@ -57,6 +60,7 @@ router.post("/signup", async (req, res) => {
         message: "User created successfully",
         token: token
     });
+    return;
 
 })
 //Sign in
@@ -65,16 +69,19 @@ const signinbody = zod.object({
     password: zod.string(),
 })
 
-router.post("/signin", async (req, res) => {
+userRouter.post("/signin", async (req, res) => {
+    console.log(req.body);
     const response = signinbody.safeParse(req.body);
     if (!response.success) {
         return res.status(411).json({
             message: "incorrect inputs"
         })
     }
+    console.log(response.success);
     const user = await User.findOne({
         userName: req.body.userName,
     })
+    console.log(user);
     if (!user) {
         return res.status(404).json("user not found!");
     }
@@ -95,13 +102,56 @@ router.post("/signin", async (req, res) => {
     return;
 });
 
+//signin with google
+userRouter.post("/google-signin",async(req,res)=>{
+    const token=req.body.token;
+    console.log(token);
+    try {
+        const ticket=await client.verifyIdToken({
+            idToken:token,
+            audience:process.env.GOOGLE_CLIENT_ID
+        });
+        const payload=ticket.getPayload();
+        const googleId=payload['sub'];
+        const email=payload['email'];
+        const firstName=payload['given_name'];
+        const lastName=payload['family_name'];
+        let user=await User.findOne({userName:email});
+        if(!user){
+            user=await User.create({
+                userName:email,
+                password: Math.random().toString(36).slice(-8),
+                firstName,
+                lastName,
+                googleId:googleId
+            });
+            await Account.create({
+                userId:user._id,
+                balance:parseInt(Math.random()*10000)
+            });
+        }
+        const jwtToken=jwt.sign(  {
+            userId: user._id,
+        },
+        process.env.JWT_SECRET);
+        return res.status(200).json({
+            message:"signed in successfully with google",
+            token:jwtToken
+        });
+      
+    } catch (error) {
+        console.error("Google Sign-In Error:", error);
+        res.status(400).json({ message: "Invalid Google token" });
+    }
+  });
+
 const updateBody = zod.object({
     password: zod.string().optional(),
     firstName: zod.string().optional(),
     lastName: zod.string().optional()
 });
 
-router.put("/", authMiddleWare, async (req, res) => {
+userRouter.put("/", authMiddleWare, async (req, res) => {
     const response = updateBody.safeParse(req.body);
     if (!response.success) {
         res.status(411).json({
@@ -116,7 +166,7 @@ router.put("/", authMiddleWare, async (req, res) => {
 })
 
 // for getting users with filter query
-router.get("/bulk",async(req,res)=>{
+userRouter.get("/bulk",authMiddleWare,async(req,res)=>{
  const filter=req.query.filter || "";
  const users=await User.find({ 
     $or:[
@@ -132,23 +182,31 @@ router.get("/bulk",async(req,res)=>{
     }
   ],
 });
+console.log('req.userId:', req.userId);
 
 res.json({
-    user:users.map((user)=>({
-        userName:user.userName,
-        firstName:user.firstName,
-        lastName:user.lastName,
-        _id:user._id
-    })),
+    user: users
+        .filter(user => user._id.toString() !== req.userId.toString())
+        .map(user => ({
+            userName: user.userName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
 });
 });
 
 
 //Getting info of current user
-router.get("/getUser",authMiddleWare,async(req,res)=>{
+userRouter.get("/getUser",authMiddleWare,async(req,res)=>{
     const user=await User.findOne({_id:req.userId});
     res.json(user);
 })
 
 
-export default router;
+userRouter.get("/validate-token",authMiddleWare,async(req,res)=>{
+  return res.json({valid:true});
+});
+
+
+export default userRouter;

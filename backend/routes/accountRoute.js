@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 import authMiddleWare from "../middleware.js";
 import Account from "../models/Account.js";
 
-const router = express.Router();
+const accountRouter = express.Router();
 
 //Getting the balance of User
-router.get("/", async (req, res) => {
+accountRouter.get("/", async (req, res) => {
     return res.send("hello world");
 })
-router.get("/balance", authMiddleWare, async (req, res) => {
-    console.log(req.userId);
+accountRouter.get("/balance", authMiddleWare, async (req, res) => {
+    // console.log(req.userId);
     const account = await Account.findOne({
         userId: req.userId
     });
@@ -23,14 +23,14 @@ router.get("/balance", authMiddleWare, async (req, res) => {
 //Transfering ammount from one account to other handling atomicity
 //either all transaction should happen or none should happen
 
-router.post("/transfer", authMiddleWare, async (req, res) => {
+accountRouter.post("/transfer", authMiddleWare, async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     const { amount, to } = req.body;
     console.log(req.body);
 
     const account = await Account.findOne({ userId: req.userId }).session(session);
-    console.log(account);
+    console.log("the account is",account);
     console.log("Account balance:", account.balance);
     if (!account || account.balance < amount) {
         await session.abortTransaction();
@@ -54,4 +54,4 @@ router.post("/transfer", authMiddleWare, async (req, res) => {
     })
 
 });
-export default router;
+export default accountRouter;
