@@ -66,11 +66,10 @@ function Signin() {
             <Button label={"Sign in"} onClick={handleButton} />
           </div>
           <div className='pt-4 w-full'>
-            <div className="w-full">
+            <div className="w-full justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSignIn}
                 onError={() => console.log('login failed')}
-                useOneTap
               />
             </div>
           </div>
